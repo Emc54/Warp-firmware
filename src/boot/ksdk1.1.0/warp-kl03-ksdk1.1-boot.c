@@ -56,21 +56,21 @@
 #include "warp.h"
 
 
-//#define WARP_FRDMKL03
+#define WARP_FRDMKL03
 
 
 /*
 *	Comment out the header file to disable devices
 */
 #ifndef WARP_FRDMKL03
-#	include "devBMX055.h"
-#	include "devMMA8451Q.h"
-#	include "devHDC1000.h"
-#	include "devMAG3110.h"
-#	include "devL3GD20H.h"
-#	include "devBME680.h"
-#	include "devCCS811.h"
-#	include "devAMG8834.h"
+//#	include "devBMX055.h"
+//#	include "devMMA8451Q.h"
+//#	include "devHDC1000.h"
+//#	include "devMAG3110.h"
+//#	include "devL3GD20H.h"
+//#	include "devBME680.h"
+//#	include "devCCS811.h"
+//#	include "devAMG8834.h"
 //#	include "devMAX11300.h"
 //#include "devTCS34725.h"
 //#include "devSI4705.h"
@@ -84,6 +84,7 @@
 //#include "devISL23415.h"
 #else
 #	include "devMMA8451Q.h"
+#	include "devSSD1331.h"
 #endif
 
 
@@ -1248,7 +1249,7 @@ main(void)
 #endif
 
 #ifdef WARP_BUILD_ENABLE_DEVMMA8451Q
-	initMMA8451Q(	0x1C	/* i2cAddress */,	&deviceMMA8451QState	);
+	initMMA8451Q(	0x1D	/* i2cAddress */,	&deviceMMA8451QState	);
 #endif
 
 #ifdef WARP_BUILD_ENABLE_DEVLPS25H
@@ -1354,6 +1355,8 @@ main(void)
 	 */
 #endif
 
+	devSSD1331init();
+	
 	while (1)
 	{
 		/*

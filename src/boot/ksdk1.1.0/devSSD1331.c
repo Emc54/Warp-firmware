@@ -8,8 +8,8 @@
 #include "warp.h"
 #include "devSSD1331.h"
 
-volatile uint8_t	inBuffer[1];
-volatile uint8_t	payloadBytes[1];
+volatile uint8_t	inBuffer[32];
+volatile uint8_t	payloadBytes[32];
 
 
 /*
@@ -17,7 +17,7 @@ volatile uint8_t	payloadBytes[1];
  */
 enum
 {
-	kSSD1331PinMOSI		= GPIO_MAKE_PIN(HW_GPIOA, 8),
+	kSSD1331PinMOSI	= GPIO_MAKE_PIN(HW_GPIOA, 8),
 	kSSD1331PinSCK		= GPIO_MAKE_PIN(HW_GPIOA, 9),
 	kSSD1331PinCSn		= GPIO_MAKE_PIN(HW_GPIOB, 13),
 	kSSD1331PinDC		= GPIO_MAKE_PIN(HW_GPIOA, 12),
@@ -134,12 +134,14 @@ devSSD1331init(void)
 	writeCommand(kSSD1331CommandCONTRASTC);		// 0x83
 	writeCommand(0x7D);
 	writeCommand(kSSD1331CommandDISPLAYON);		// Turn on oled panel
+	SEGGER_RTT_WriteString(0, "\r\n\tDone with initialization sequence...\n");
 
 	/*
 	 *	To use fill commands, you will have to issue a command to the display to enable them. See the manual.
 	 */
 	writeCommand(kSSD1331CommandFILL);
 	writeCommand(0x01);
+	SEGGER_RTT_WriteString(0, "\r\n\tDone with enabling fill...\n");
 
 	/*
 	 *	Clear Screen
@@ -149,13 +151,62 @@ devSSD1331init(void)
 	writeCommand(0x00);
 	writeCommand(0x5F);
 	writeCommand(0x3F);
+	SEGGER_RTT_WriteString(0, "\r\n\tDone with screen clear...\n");
 
 
 
 	/*
-	 *	Any post-initialization drawing commands go here.
+	 *	Read the manual for the SSD1331 (SSD1331_1.2.pdf) to figure
+	 *	out how to fill the entire screen with the brightest shade
+	 *	of green.
 	 */
-	//...
+
+	
+	/*  
+	 *	Entire Display ON, all pixels turn ON at GS63.
+	 *	GS63 has the largest pulsewidth and therefore brightest
+	 *	value
+	*/
+	writeCommand(kSSD1331CommandDISPLAYALLON);
+
+	
+	writeCommand(kSSD1331CommandMASTERCURRENT);
+	writeCommand(0x0F); // resets master current to max value
+
+	writeCommand(kSSD1331CommandPRECHARGELEVEL);
+	writeCommand(0x1F); //Sets precharge voltage level to max
+
+	writeCommand(kSSD1331CommandCONTRASTA);
+	writeCommand(0x00); //sets the contrast value for red to 0
+	writeCommand(kSSD1331CommandCONTRASTB);
+	writeCommand(0xFF); //sets the contrast value for green to max
+	writeCommand(kSSD1331CommandCONTRASTC);
+	writeCommand(0x00); //sets the contrast value for blue to 0
+
+	/*Precharge speed must be set for all three to take effect
+	and must also match the contrast values */
+	writeCommand(kSSD1331CommandPRECHARGEA);
+	writeCommand(0x00);
+	writeCommand(kSSD1331CommandPRECHARGEB);
+	writeCommand(0xFF);
+	writeCommand(kSSD1331CommandPRECHARGEC);
+	writeCommand(0x00);
+
+	writeCommand(kSSD1331CommandDRAWRECT);
+	writeCommand(0x00); //sets column address start
+	writeCommand(0x00); //sets row address start
+	writeCommand(0x5F); //sets column address end
+	writeCommand(0x3F); //set row address end
+	writeCommand(0x00); //No blue outline
+	writeCommand(0xFF); //Brightest green outline
+	writeCommand(0x00); //No red outline
+	writeCommand(0x00); //No blue fill
+	writeCommand(0xFF);	//Brightest green fill
+	writeCommand(0x00); //No red fill
+
+
+
+	SEGGER_RTT_WriteString(0, "\r\n\tDone with draw rectangle...\n");
 
 
 
