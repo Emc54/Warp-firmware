@@ -1351,10 +1351,18 @@ main(void)
 	 *	TODO: initialize the kWarpPinKL03_VDD_ADC, write routines to read the VDD and temperature
 	 */
 
-bool dummyStatus;
-dummyStatus = readSensorRegisterINA219(0x01,2);
-SEGGER_RTT_printf(0, "\r\tShunt_Voltage =  %d \n", deviceINA219State.i2cBuffer);
+int dummyStatus;
+uint16_t s = 32768;
 
+for (int i=1;i<4;i++)
+{
+	enableI2Cpins(s);
+	dummyStatus = readSensorRegisterINA219(0x01,2);
+	SEGGER_RTT_printf(0, "\n\r\t byte 1 %d \n", deviceINA219State.i2cBuffer[0]);
+	SEGGER_RTT_printf(0, "\n\r\t byte 2 %d \n", deviceINA219State.i2cBuffer[1]);
+	SEGGER_RTT_printf(0, "\r\t shunt voltage %d\n", dummyStatus);
+	disableI2Cpins();
+}
 
 #ifdef WARP_BUILD_BOOT_TO_CSVSTREAM
 	/*

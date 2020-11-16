@@ -25,27 +25,26 @@ void
 initINA219(const uint8_t i2cAddress, WarpI2CDeviceState volatile *  deviceStatePointer)
 {
 
-	//Not needed, the enableI2Cpins function does this
+	//Npt needed, the enableI2Cpins function does this
 	//PORT_HAL_SetMuxMode(PORTB_BASE, 3, kPortMuxAlt2);
 	//PORT_HAL_SetMuxMode(PORTB_BASE, 4, kPortMuxAlt2);
 	
-	uint16_t				defaultI2cPullupValue = 32768;
-
-	enableI2Cpins(defaultI2cPullupValue);
-
+	
 	deviceStatePointer->i2cAddress	= i2cAddress;
 	deviceStatePointer->signalType	= kWarpTypeMaskShuntVoltage;
 	
 	return;
 }
 
-WarpStatus
+
+
+int
 readSensorRegisterINA219(uint8_t deviceRegister, int numberOfBytes)
 {
-	uint8_t		cmdBuf[1] = {0xFF};
+	uint8_t			cmdBuf[1];
 	i2c_status_t	status;
-
-
+	int 			shuntVoltage;
+	
 	USED(numberOfBytes);
 
 
@@ -57,8 +56,11 @@ readSensorRegisterINA219(uint8_t deviceRegister, int numberOfBytes)
 
 
 	cmdBuf[0] = deviceRegister;
+	
+	SEGGER_RTT_printf(0, "\n\r\t byte 1 bef %d \n", deviceINA219State.i2cBuffer[0]);
+	SEGGER_RTT_printf(0, "\n\r\t byte 2 bef %d \n", deviceINA219State.i2cBuffer[1]);
 
-
+	
 	status = I2C_DRV_MasterReceiveDataBlocking(
 							0 /* I2C peripheral instance */,
 							&slave,
@@ -73,5 +75,7 @@ readSensorRegisterINA219(uint8_t deviceRegister, int numberOfBytes)
 		return kWarpStatusDeviceCommunicationFailed;
 	}
 
-	return kWarpStatusOK;
+	shuntVoltage = deviceINA219State.i2cBuffer[1] | (deviceINA219State.i2cBuffer[0] << 8);
+	
+	return shuntVoltage;
 }
