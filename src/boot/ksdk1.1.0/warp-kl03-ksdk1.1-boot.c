@@ -85,6 +85,7 @@
 #else
 #	include "devMMA8451Q.h"
 #	include "devSSD1331.h"
+#	include "devINA219.h"
 #endif
 
 
@@ -177,6 +178,10 @@ volatile WarpI2CDeviceState			deviceAS7263State;
 
 #ifdef WARP_BUILD_ENABLE_DEVRV8803C7
 volatile WarpI2CDeviceState			deviceRV8803C7State;
+#endif
+
+#ifdef WARP_BUILD_ENABLE_DEVINA219
+volatile WarpI2CDeviceState			deviceINA219State;
 #endif
 
 /*
@@ -1326,6 +1331,14 @@ main(void)
 	initISL23415(&deviceISL23415State);
 #endif
 
+#ifdef WARP_BUILD_ENABLE_DEVSSD1331
+	devSSD1331init();
+#endif
+
+#ifdef WARP_BUILD_ENABLE_DEVINA219
+	initINA219(	0x40	/* i2cAddress*/,	&deviceINA219State);
+#endif
+
 	/*
 	 *	Make sure SCALED_SENSOR_SUPPLY is off.
 	 *
@@ -1338,7 +1351,9 @@ main(void)
 	 *	TODO: initialize the kWarpPinKL03_VDD_ADC, write routines to read the VDD and temperature
 	 */
 
-
+bool dummyStatus;
+dummyStatus = readSensorRegisterINA219(0x01,2);
+SEGGER_RTT_printf(0, "\r\tShunt_Voltage =  %d \n", deviceINA219State.i2cBuffer);
 
 
 #ifdef WARP_BUILD_BOOT_TO_CSVSTREAM
@@ -1355,8 +1370,6 @@ main(void)
 	 */
 #endif
 
-	devSSD1331init();
-	
 	while (1)
 	{
 		/*

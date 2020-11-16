@@ -44,7 +44,7 @@ typedef enum
 	kWarpTypeMaskTotalVOC		= (1 << 28),
 	kWarpTypeMaskEquivalentCO2	= (1 << 29),
 
-
+	kWarpTypeMaskShuntVoltage	= (1 << 12),
 	/*
 	 *	Always keep these two as the last items.
 	 */
