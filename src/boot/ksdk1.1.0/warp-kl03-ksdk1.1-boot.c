@@ -1351,16 +1351,32 @@ main(void)
 	 *	TODO: initialize the kWarpPinKL03_VDD_ADC, write routines to read the VDD and temperature
 	 */
 
-int dummyStatus;
-uint16_t s = 32768;
-
-for (int i=1;i<4;i++)
+int rawReading;
+int rawCurrent;
+int units;
+int decades;
+int current;
+ 
+for (int i=1;i<1001;i++)
 {
-	enableI2Cpins(s);
-	dummyStatus = readSensorRegisterINA219(0x01,2);
-	SEGGER_RTT_printf(0, "\n\r\t byte 1 %d \n", deviceINA219State.i2cBuffer[0]);
-	SEGGER_RTT_printf(0, "\n\r\t byte 2 %d \n", deviceINA219State.i2cBuffer[1]);
-	SEGGER_RTT_printf(0, "\r\t shunt voltage %d\n", dummyStatus);
+	enableI2Cpins(menuI2cPullupValue);
+	
+	rawReading = readSensorRegisterINA219(0x01,2);
+	
+	//SEGGER_RTT_printf(0, "\r\t raw voltage %d (x10^-5) V\n", rawReading);
+	
+	rawCurrent = 10*rawReading; //From the adafruit schematic of the INA219, resistor of 0.1 ohm
+	
+	//SEGGER_RTT_printf(0, "\r\t raw current %d mA\n", rawCurrent);
+
+	units = rawCurrent % 10; // Retrieves the second decimal (10^-2 value) of the raw current reading
+
+	decades = ((rawCurrent % 100) - units)/10; //Retrieves the first decimal (10^-1 value) of the raw current reading
+	
+	current = (rawCurrent - rawCurrent % 100)/100; //Retrieves the floor of the integer current reading 
+	
+	SEGGER_RTT_printf(0,"\r\t raw voltage %d (x10^-5) V, measured current %d.%d%d mA\n",rawReading,current,decades,units);
+	
 	disableI2Cpins();
 }
 

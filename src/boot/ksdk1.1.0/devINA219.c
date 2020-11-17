@@ -43,7 +43,7 @@ readSensorRegisterINA219(uint8_t deviceRegister, int numberOfBytes)
 {
 	uint8_t			cmdBuf[1];
 	i2c_status_t	status;
-	int 			shuntVoltage;
+	int 			regVoltage;
 	
 	USED(numberOfBytes);
 
@@ -57,9 +57,6 @@ readSensorRegisterINA219(uint8_t deviceRegister, int numberOfBytes)
 
 	cmdBuf[0] = deviceRegister;
 	
-	SEGGER_RTT_printf(0, "\n\r\t byte 1 bef %d \n", deviceINA219State.i2cBuffer[0]);
-	SEGGER_RTT_printf(0, "\n\r\t byte 2 bef %d \n", deviceINA219State.i2cBuffer[1]);
-
 	
 	status = I2C_DRV_MasterReceiveDataBlocking(
 							0 /* I2C peripheral instance */,
@@ -75,7 +72,7 @@ readSensorRegisterINA219(uint8_t deviceRegister, int numberOfBytes)
 		return kWarpStatusDeviceCommunicationFailed;
 	}
 
-	shuntVoltage = deviceINA219State.i2cBuffer[1] | (deviceINA219State.i2cBuffer[0] << 8);
+	regVoltage = deviceINA219State.i2cBuffer[1] | (deviceINA219State.i2cBuffer[0] << 8);
 	
-	return shuntVoltage;
+	return regVoltage;
 }
