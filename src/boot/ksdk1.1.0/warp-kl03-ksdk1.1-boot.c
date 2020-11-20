@@ -1356,18 +1356,23 @@ int rawCurrent;
 int units;
 int decades;
 int current;
- 
+
 for (int i=1;i<1001;i++)
 {
 	enableI2Cpins(menuI2cPullupValue);
 	
-	rawReading = readSensorRegisterINA219(0x01,2);
+	rawReading = readLATSensorRegisterINA219(0x01,2);
 	
 	//SEGGER_RTT_printf(0, "\r\t raw voltage %d (x10^-5) V\n", rawReading);
 	
 	rawCurrent = 10*rawReading; //From the adafruit schematic of the INA219, resistor of 0.1 ohm
 	
 	//SEGGER_RTT_printf(0, "\r\t raw current %d mA\n", rawCurrent);
+
+	/*
+	 * Note: If I try and get both decimals using 'rawCurrent % 100', if the reading is e.g. 609, then the zero will
+	 * be ommited and the print function will return 6.9 instead of 6.09. This is why we need each decimal place separetly
+	 */ 
 
 	units = rawCurrent % 10; // Retrieves the second decimal (10^-2 value) of the raw current reading
 
@@ -1379,6 +1384,45 @@ for (int i=1;i<1001;i++)
 	
 	disableI2Cpins();
 }
+
+
+/*
+ *	Unsuccessful attempt 
+ *
+ *	bool dummyStatus;
+ *	int currentReg;
+ *	int calReg;
+ *	int voltReg;
+ *  double currentCheck;
+ *
+ *  for (int i=1;i<1001;i++)
+ *	{
+ *	enableI2Cpins(menuI2cPullupValue);
+ *	
+ *	dummyStatus = writeCalRegisterINA219(0x3900,menuI2CPullupValue);	
+ *	
+ *	disableI2Cpins();
+ *
+ * 	enableI2Cpins(menuI2cPullupValue);
+ * 
+ * 	calReg = readSensorRegisterINA219(0x05,2);
+ *
+ *	currentReg = readSensorRegisterINA219(0x04,2); 
+ *	
+ *	voltReg = readSensorRegisterINA219(0x01,2); 
+ *	
+ *	currentCheck = calReg*voltReg/4096;
+ *	
+ *	disableI2Cpins();
+ *	
+ *  SEGGER_RTT_printf(0,"\r\t sensor current %d mA, checked current %d mA\n",currentReg,currentCheck);	
+ *
+ *	}
+ *
+ */
+
+
+
 
 #ifdef WARP_BUILD_BOOT_TO_CSVSTREAM
 	/*
@@ -1631,6 +1675,14 @@ for (int i=1;i<1001;i++)
 #endif
 				OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
 
+#ifdef WARP_BUILD_ENABLE_DEVINA219
+				SEGGER_RTT_WriteString(0, "\r\t- 'l' INA219			(0x00--0x2B): 3.3V -- 5V\n");
+				#else
+				SEGGER_RTT_WriteString(0, "\r\t- 'l' INA219			(0x00--0x2B): 3.3V -- 5V (compiled out) \n");
+#endif
+				OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
+
+
 				SEGGER_RTT_WriteString(0, "\r\tEnter selection> ");
 				OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
 
@@ -1782,6 +1834,14 @@ for (int i=1;i<1001;i++)
 						break;
 					}
 #endif
+#ifdef WARP_BUILD_ENABLE_DEVINA219
+					case 'l':
+					{
+						menuTargetSensor = kWarpSensorINA219;
+						menuI2cDevice = &deviceINA219State;
+						break;
+					}
+#endif				
 					default:
 					{
 #ifdef WARP_BUILD_ENABLE_SEGGER_RTT_PRINTF
@@ -1791,7 +1851,7 @@ for (int i=1;i<1001;i++)
 				}
 
 				break;
-			}
+			} 
 
 			/*
 			 *	Change default I2C baud rate
@@ -1875,8 +1935,7 @@ for (int i=1;i<1001;i++)
 				uint8_t		i2cAddress, payloadByte[1], commandByte[1];
 				i2c_status_t	i2cStatus;
 				WarpStatus	status;
-
-
+				
 				USED(status);
 				SEGGER_RTT_WriteString(0, "\r\n\tEnter I2C addr. (e.g., '0f') or '99' for SPI > ");
 				i2cAddress = readHexByte();
@@ -2641,6 +2700,13 @@ printAllSensors(bool printHeadersAndCalibration, bool hexModeFlag, int menuDelay
 					);
 	#endif
 
+	#ifdef WARP_BUILD_ENABLE_DEVINA219
+	numberOfConfigErrors += configureSensorINA219(0x399F, /* Default Configuration */
+					0x3900,/* max current measurement of 1A, LSB 4uA */
+					i2cPullupValue
+					);
+	#endif
+
 
 	if (printHeadersAndCalibration)
 	{
@@ -2691,6 +2757,10 @@ printAllSensors(bool printHeadersAndCalibration, bool hexModeFlag, int menuDelay
 		SEGGER_RTT_WriteString(0, " HDC1000 Temp, HDC1000 Hum,");
 		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
 		#endif
+		#ifdef WARP_BUILD_ENABLE_DEVINA219
+		SEGGER_RTT_WriteString(0, "INA219 Shunt Voltage, INA219 Bus Votltage, INA219 Current, INA219 Power");
+		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
+		#endif
 		SEGGER_RTT_WriteString(0, " RTC->TSR, RTC->TPR, # Config Errors");
 		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
 		SEGGER_RTT_WriteString(0, "\n\n");
@@ -2729,6 +2799,9 @@ printAllSensors(bool printHeadersAndCalibration, bool hexModeFlag, int menuDelay
 		#endif
 		#ifdef WARP_BUILD_ENABLE_DEVHDC1000
 		printSensorDataHDC1000(hexModeFlag);
+		#endif
+		#ifdef WARP_BUILD_ENABLE_DEVINA219
+		printSensorDataINA219(hexModeFlag);
 		#endif
 
 
@@ -3387,6 +3460,33 @@ repeatRegisterReadForDeviceAndAddress(WarpSensorDevice warpSensorDevice, uint8_t
 					);
 			#else
 			SEGGER_RTT_WriteString(0, "\r\n\tAS7263 Read Aborted. Device Disabled :( ");
+#endif
+			break;
+		}
+		case kWarpSensorINA219:
+		{
+
+
+
+#ifdef WARP_BUILD_ENABLE_DEVINA219
+			loopForSensor(  "\n\rINA219:\n\r",		/*	tagString			*/
+					&readSensorRegisterINA219,	/*	readSensorRegisterFunction	*/
+					&deviceINA219State,		/*	i2cDeviceState			*/
+					NULL,				/*	spiDeviceState			*/
+					baseAddress,			/*	baseAddress			*/
+					0x00,				/*	minAddress			*/
+					0x05,				/*	maxAddress			*/
+					repetitionsPerAddress,		/*	repetitionsPerAddress		*/
+					chunkReadsPerAddress,		/*	chunkReadsPerAddress		*/
+					spinDelay,			/*	spinDelay			*/
+					autoIncrement,			/*	autoIncrement			*/
+					sssupplyMillivolts,		/*	sssupplyMillivolts		*/
+					referenceByte,			/*	referenceByte			*/
+					adaptiveSssupplyMaxMillivolts,	/*	adaptiveSssupplyMaxMillivolts	*/
+					chatty				/*	chatty				*/
+					);
+			#else
+			SEGGER_RTT_WriteString(0, "\r\n\tINA219 Read Aborted. Device Disabled :( ");
 #endif
 			break;
 		}
