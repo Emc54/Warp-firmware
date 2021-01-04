@@ -5,12 +5,13 @@
 #include <stdio.h>
 #include <math.h>
 #include <complex.h>
-#include "arithmetic_propagation.h"
+#include "FFT.h"
 
-double PI = atan2(1,1) * 4;
 
 void _fft(complex_uncertain_value buffer[], complex_uncertain_value output[], int n, int step)
 {
+	float PI = atan2(1,1) * 4;
+
 	if (step < n) {
 		_fft(output, buffer, n, step * 2);
 		_fft(output + step, buffer + step, n, step * 2);

@@ -177,20 +177,20 @@ devSSD1331init(void)
 	writeCommand(0x1F); //Sets precharge voltage level to max
 
 	writeCommand(kSSD1331CommandCONTRASTA);
-	writeCommand(0xFF); //sets the contrast value for red to max
+	writeCommand(0x00); //sets the contrast value for blue to 0
 	writeCommand(kSSD1331CommandCONTRASTB);
 	writeCommand(0x00); //sets the contrast value for green to 0
 	writeCommand(kSSD1331CommandCONTRASTC);
-	writeCommand(0x00); //sets the contrast value for blue to 0
+	writeCommand(0xFF); //sets the contrast value for red to max
 
 	/*Precharge speed must be set for all three to take effect
 	and must also match the contrast values */
 	writeCommand(kSSD1331CommandPRECHARGEA);
-	writeCommand(0xFF);
+	writeCommand(0x00);
 	writeCommand(kSSD1331CommandPRECHARGEB);
 	writeCommand(0x00);
 	writeCommand(kSSD1331CommandPRECHARGEC);
-	writeCommand(0x00);
+	writeCommand(0xFF);
 
 	writeCommand(kSSD1331CommandDRAWRECT);
 	writeCommand(0x00); //sets column address start
@@ -203,7 +203,6 @@ devSSD1331init(void)
 	writeCommand(0x00); //No blue fill
 	writeCommand(0x00);	//No green fill
 	writeCommand(0xFF); //Brightest red fill
-
 
 
 	SEGGER_RTT_WriteString(0, "\r\n\tDone with draw rectangle...\n");
