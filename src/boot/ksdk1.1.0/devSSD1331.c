@@ -177,18 +177,18 @@ devSSD1331init(void)
 	writeCommand(0x1F); //Sets precharge voltage level to max
 
 	writeCommand(kSSD1331CommandCONTRASTA);
-	writeCommand(0x00); //sets the contrast value for red to 0
+	writeCommand(0xFF); //sets the contrast value for red to max
 	writeCommand(kSSD1331CommandCONTRASTB);
-	writeCommand(0xFF); //sets the contrast value for green to max
+	writeCommand(0x00); //sets the contrast value for green to 0
 	writeCommand(kSSD1331CommandCONTRASTC);
 	writeCommand(0x00); //sets the contrast value for blue to 0
 
 	/*Precharge speed must be set for all three to take effect
 	and must also match the contrast values */
 	writeCommand(kSSD1331CommandPRECHARGEA);
-	writeCommand(0x00);
-	writeCommand(kSSD1331CommandPRECHARGEB);
 	writeCommand(0xFF);
+	writeCommand(kSSD1331CommandPRECHARGEB);
+	writeCommand(0x00);
 	writeCommand(kSSD1331CommandPRECHARGEC);
 	writeCommand(0x00);
 
@@ -198,11 +198,11 @@ devSSD1331init(void)
 	writeCommand(0x5F); //sets column address end
 	writeCommand(0x3F); //set row address end
 	writeCommand(0x00); //No blue outline
-	writeCommand(0xFF); //Brightest green outline
-	writeCommand(0x00); //No red outline
+	writeCommand(0x00); //No green outline
+	writeCommand(0xFF); //Brightest red outline
 	writeCommand(0x00); //No blue fill
-	writeCommand(0xFF);	//Brightest green fill
-	writeCommand(0x00); //No red fill
+	writeCommand(0x00);	//No green fill
+	writeCommand(0xFF); //Brightest red fill
 
 
 
