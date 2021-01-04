@@ -2,18 +2,7 @@
 #include <math.h>
 #include "arithmetic_propagation.h"
 #include "FFT.h"
-
-typedef struct stats
-{
-	double mean;
-	double variance;
-	int count;
-	double M2;
-} Statistics;
-
-
-//Struct twoPassAlgorithm(double arr[2][100]);
-//Struct WelfordAlgorithm(Struct statistics, double newValue);
+#include "statistics.h"
 
 
 Statistics
