@@ -1357,7 +1357,7 @@ int units;
 int decades;
 int current;
 
-for (int i=1;i<1001;i++)
+for (int i=1;i<21;i++)
 {
 	enableI2Cpins(menuI2cPullupValue);
 	
@@ -1421,7 +1421,59 @@ for (int i=1;i<1001;i++)
  *
  */
 
+#define WARP_BUILD_CW5
+#define INA_READINGS
 
+#ifdef WARP_BUILD_CW5
+
+	// Initialise an array for the first 100 datapoints with space for their variance (uncertainty)
+	static double datapoints[2][100];
+	double reading = 0.00;
+	int first_decimal;
+	int second_decimal;
+	int intReading;
+
+    for (int i=0;i<2;i++)
+    {
+        for (int j=0;j<5;j++)
+        {
+       	    datapoints[i][j] = 32;
+
+			SEGGER_RTT_printf(0, "\r\t initialisation check %d \n", datapoints[i][j]);
+       	}
+    }
+
+    // Collect the first 100 readings
+
+	for (int i=0;i<100;i++)
+	{
+		enableI2Cpins(menuI2cPullupValue);
+	
+		rawReading = readLATSensorRegisterINA219(0x01,2);
+
+		datapoints[0][i] = rawReading;
+	
+		SEGGER_RTT_printf(0, "\r\t raw datapoints %d and in hex %x, raw Reading %d  \n",rawReading,rawReading,datapoints[0][i]);
+	
+		//manipulations for the INA only since it specifies integers but provides numbers where the last two digits are decimals 
+		#ifdef INA_READINGS
+	
+		second_decimal = rawReading % 10; // Retrieves the second decimal (10^-2 value) of the raw reading
+
+		first_decimal = ((rawReading % 100) - second_decimal)/10; //Retrieves the first decimal (10^-1 value) of the raw current reading
+	
+		intReading = (rawReading - rawReading % 100)/100; //Retrieves the floor of the integer current reading 
+
+		reading = intReading + first_decimal*0.1 + second_decimal*0.01;
+
+		datapoints[0][i] = reading;
+
+		#endif
+
+		disableI2Cpins();
+	}
+
+#endif
 
 
 #ifdef WARP_BUILD_BOOT_TO_CSVSTREAM
