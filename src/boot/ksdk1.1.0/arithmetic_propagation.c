@@ -9,15 +9,15 @@
 
 // typedef struct
 // {
-//   float value;
-//   float variance;
+//   double value;
+//   double variance;
 // } uncertain_value;
 
 // typedef struct
 // {
 // 	complex value;
-// 	float real_variance;
-// 	float imag_variance;
+// 	double real_variance;
+// 	double imag_variance;
 // } complex_uncertain_value;
 
 //Deal with divisions by 0, they break uncertainty calculations and give NAN
@@ -44,8 +44,8 @@ mult_prop (uncertain_value data1, uncertain_value data2)
     uncertain_value result;
     result.value = data1.value * data2.value;
     
-    float svar1 = data1.variance;
-    float svar2 = data2.variance;
+    double svar1 = data1.variance;
+    double svar2 = data2.variance;
     
     if (data1.value != 0)
     {
@@ -71,8 +71,8 @@ div_prop (uncertain_value data1, uncertain_value data2)
     uncertain_value result;
     result.value = data1.value / data2.value;
     
-    float svar1 = data1.variance;
-    float svar2 = data2.variance;
+    double svar1 = data1.variance;
+    double svar2 = data2.variance;
     
     if (data1.value != 0)
     {
@@ -93,9 +93,9 @@ div_prop (uncertain_value data1, uncertain_value data2)
 }
 
 uncertain_value
-to_power_prop (uncertain_value data1, float power)
+to_power_prop (uncertain_value data1, double power)
 {
-    float std_div;
+    double std_div;
     uncertain_value result;
     result.value = pow(data1.value,power);
     std_div = sqrt(abs(data1.variance));
@@ -114,7 +114,7 @@ exp_prop (uncertain_value data1)
 }
 
 uncertain_value
-as_power_prop (uncertain_value data1, float base)
+as_power_prop (uncertain_value data1, double base)
 {
     uncertain_value result;
     result.value = pow(base,data1.value);
@@ -172,6 +172,7 @@ cos_prop (uncertain_value data1)
     return result;
 }
 
+// Probably need to implement complex addition, complex multiplication and complex exponentiation. Complex division optional extra
 
 complex_uncertain_value
 cadd_prop(complex_uncertain_value data1, complex_uncertain_value data2)
@@ -197,16 +198,16 @@ cmult_prop(complex_uncertain_value data1, complex_uncertain_value data2)
     result.value = data1.value  * data2.value;
     
     //Check for zeroes
-    float a = creal(data1.value);
-    float b = cimag(data1.value);
-    float c = creal(data2.value);
-    float d = cimag(data2.value);
+    double a = creal(data1.value);
+    double b = cimag(data1.value);
+    double c = creal(data2.value);
+    double d = cimag(data2.value);
     
     //Sum components of variance
-    float svar_a = data1.real_variance;
-    float svar_b = data1.imag_variance;
-    float svar_c = data2.real_variance;
-    float svar_d = data2.imag_variance;
+    double svar_a = data1.real_variance;
+    double svar_b = data1.imag_variance;
+    double svar_c = data2.real_variance;
+    double svar_d = data2.imag_variance;
     
     // (a+bi)(c+di) = ac - bd for the real part
     // (a+bi)(c+di) = (ad + bc)i for the imag part
@@ -249,21 +250,23 @@ cexp_prop(complex_uncertain_value data1)
 
 
 
-//General cases not in use as they aren't required for the specific calculations being done for the current sensor.
+
+
+
 
 #ifdef GENERALISED_FUNCTIONS
 // general cases including constants a and b
 
 typedef struct
 {
-  float value;
-  float mean;
-  float variance;
-  float std_div;
+  double value;
+  double mean;
+  double variance;
+  double std_div;
 } uncertain_value;
 
 uncertain_value
-add_prop (uncertain_value data1, uncertain_value data2, float a, float b)
+add_prop (uncertain_value data1, uncertain_value data2, double a, double b)
 {
   uncertain_value result;
   result.value = a * data1.value + b * data2.value;
@@ -279,7 +282,7 @@ subtract_prop (uncertain_value data1, uncertain_value data2)
 }
 
 uncertain_value
-mult_prop (uncertain_value data1, uncertain_value data2, float a)
+mult_prop (uncertain_value data1, uncertain_value data2, double a)
 {
     uncertain_value result;
     result.value = a * data1.value * data2.value;
@@ -294,7 +297,7 @@ mult_prop (uncertain_value data1, uncertain_value data2, float a)
 }
 
 uncertain_value
-div_prop (uncertain_value data1, uncertain_value data2, float a)
+div_prop (uncertain_value data1, uncertain_value data2, double a)
 {
     uncertain_value result;
     result.value = a * data1.value / data2.value;
@@ -307,7 +310,7 @@ div_prop (uncertain_value data1, uncertain_value data2, float a)
 }
 
 uncertain_value
-to_power_prop (uncertain_value data1, float power, float a)
+to_power_prop (uncertain_value data1, double power, double a)
 {
     uncertain_value result;
     result.value = a * pow(data1.value,power);
@@ -317,10 +320,10 @@ to_power_prop (uncertain_value data1, float power, float a)
 }
 
 uncertain_value
-exp_prop (uncertain_value data1, float a, float b)
+exp_prop (uncertain_value data1, double a, double b)
 {
     uncertain_value result;
-    float temp = b * data1.value;
+    double temp = b * data1.value;
     result.value = a * exp(temp);
     result.std_div = result.value * b * data1.std_div;
     result.variance = result.std_div * result.std_div;
@@ -328,10 +331,10 @@ exp_prop (uncertain_value data1, float a, float b)
 }
 
 uncertain_value
-as_power_prop (uncertain_value data1, float a, float b)
+as_power_prop (uncertain_value data1, double a, double b)
 {
     uncertain_value result;
-    float temp = b * data1.value;
+    double temp = b * data1.value;
     result.value = pow(a, temp);
     result.std_div = result.value * b * data1.std_div * log(a);
     result.variance = result.std_div * result.std_div;
@@ -339,10 +342,10 @@ as_power_prop (uncertain_value data1, float a, float b)
 }    
 
 uncertain_value
-log_prop (uncertain_value data1, float a, float b)
+log_prop (uncertain_value data1, double a, double b)
 {
     uncertain_value result;
-    float temp = b * data1.value;
+    double temp = b * data1.value;
     result.value = a * log(temp);
     result.std_div = a * b * data1.std_div / data1.value;
     result.variance = data1.std_div * data1.std_div;
@@ -350,10 +353,10 @@ log_prop (uncertain_value data1, float a, float b)
 }
 
 uncertain_value
-sin_prop (uncertain_value data1, float a, float b)
+sin_prop (uncertain_value data1, double a, double b)
 {
     uncertain_value result;
-    float temp = data1.value * b;
+    double temp = data1.value * b;
     result.value = a * sin(temp);
     result.std_div = data1.std_div * a * b * cos(temp);
     result.variance = result.std_div * result.std_div;
@@ -361,10 +364,10 @@ sin_prop (uncertain_value data1, float a, float b)
 }
 
 uncertain_value
-cos_prop (uncertain_value data1, float a, float b)
+cos_prop (uncertain_value data1, double a, double b)
 {
     uncertain_value result;
-    float temp = data1.value * b;
+    double temp = data1.value * b;
     result.value = a * cos(temp);
     result.std_div = - data1.std_div * a * b * sin(temp);
     result.variance = result.std_div * result.std_div;
